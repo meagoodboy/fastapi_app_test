@@ -1,0 +1,54 @@
+FROM postgres:latest
+
+ENV POSTGRES_USER tester
+ENV POSTGRES_PASSWORD qwertyuiop[]
+ENV POSTGRES_DB testdb
+
+RUN apt-get update && apt-get install -y python3 python3-pip
+
+COPY requirements.txt .
+RUN pip install --break-system-packages -r requirements.txt
+
+RUN echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";" > /docker-entrypoint-initdb.d/enable_uuid.sql
+
+COPY database.py /docker-entrypoint-initdb.d/
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
+# Remove the RUN command that executes the Python script
+# RUN python3 /docker-entrypoint-initdb.d/database.py
+
+# Add a new entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+# FROM postgres:latest
+
+# ENV POSTGRES_USER tester
+# ENV POSTGRES_PASSWORD qwertyuiop[]
+# ENV POSTGRES_DB testdb
+
+# RUN apt-get update && apt-get install -y python3 python3-pip
+
+# COPY requirements.txt .
+# RUN pip install --break-system-packages -r requirements.txt
+
+# RUN echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";" > /docker-entrypoint-initdb.d/enable_uuid.sql
+
+# COPY database.py /docker-entrypoint-initdb.d/
+# COPY wait-for-it.sh /wait-for-it.sh
+# RUN chmod +x /wait-for-it.sh
+
+# # Set the working directory
+# WORKDIR /app
+
+# # Copy the rest of your application code (if any)
+# COPY . .
+
+# # Expose the PostgreSQL port
+# EXPOSE 5432
+
+# # Use the wait-for-it script to ensure the database is ready before running your application
+# CMD ["python3", "database.py"]
